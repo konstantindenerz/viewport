@@ -8,3 +8,7 @@ $ ()->
   viewPort.defocus (elements)->
     console.log 'defocus', elements
   viewPort.update()
+
+  console.log viewPort.hasFocus (element)-> $(element).hasClass 'a' # expected value: true
+  console.log viewPort.hasFocus (element)-> $(element).hasClass 'f' # expected value: false
+  

@@ -102,5 +102,14 @@ $ ()->
     # Register a callback that should be invoked if a section loses the focus.
     defocus: (onDefocus)->
       defocusCallbacks.push onDefocus
-
+    hasFocus: (validator)->
+      result = false
+      $targets = $ @config.selector
+      $focussed = getFocussedTargets $targets, @config.overlap
+      for element in $focussed
+        isValid = validator element
+        if isValid
+          result = isValid
+          break
+      return result
   window.lab.ui.Viewport = Viewport
