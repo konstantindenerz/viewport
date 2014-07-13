@@ -2,7 +2,8 @@ $ ()->
   viewPort = new lab.ui.Viewport
     selector: '.section'
     offset: 50
-  viewPort.focus (element)->
-    console.log element
-  viewPort.defocus (element)->
-    console.log element
+  viewPort.focus (elements)->
+    console.log 'new focus', elements
+  viewPort.defocus (elements)->
+    console.log 'defocus', elements
+  viewPort.update()

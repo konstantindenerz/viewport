@@ -2,6 +2,10 @@ $ ()->
   window.lab = window.lab or {}
   window.lab.ui = window.lab.ui or {}
   focusFlagAttribute = 'data-viewport-focus'
+  # Creates a delegate to a method with a context. The delegate can be invoked by invoke method.
+  delegate = (context, method)->
+    invoke: ()-> method.apply context, arguments
+
   # returns true if the first rectangle intersects the second rectangle, else false
   intersects = (r1, r2)->
     r1 = $.extend {}, r1
@@ -39,25 +43,41 @@ $ ()->
       if isInViewport($element)
         result.push $element[0]
     result
+
+  focusCallbacks = []
+  defocusCallbacks = []
   class Viewport
     # required properties: selector, offset
     constructor: (@config)->
-      $targets = $ @config.selector
       $window = $ window
-      update = ()->
-        $focussed = getFocussedTargets $targets
-        $targets.each (i, element)->
-          $element = $ element
-          if $focussed.indexOf(element) is -1
-            $element.attr focusFlagAttribute, null
-          else
-            $element.attr focusFlagAttribute, true
-      $window.resize update
-      $window.scroll update
+      updateDelegate = delegate this, this.update
+      $window.resize ()-> updateDelegate.invoke()
+      $window.scroll ()-> updateDelegate.invoke()
+    update: ()->
+      $targets = $ @config.selector
+      $focussed = getFocussedTargets $targets
+      newFocussed = (element for element in $focussed when not hasFocusFlag($ element))
+      newDefocussed = []
+      $targets.each (i, element)->
+        $element = $ element
+        if $focussed.indexOf(element) is -1
+          if hasFocusFlag $element
+            newDefocussed.push $element[0]
+          $element.attr focusFlagAttribute, null
+        else
+          $element.attr focusFlagAttribute, true
+      # invoke callbacks
+      if newFocussed.length
+        callback newFocussed for callback in focusCallbacks
+      if newDefocussed.length
+        callback newDefocussed for callback in defocusCallbacks
+
+
     # Register a callback that should be invoked if a new section is focussed.
     focus: (onFocus)->
-
+      focusCallbacks.push onFocus
     # Register a callback that should be invoked if a section loses the focus.
     defocus: (onDefocus)->
+      defocusCallbacks.push onDefocus
 
   window.lab.ui.Viewport = Viewport
