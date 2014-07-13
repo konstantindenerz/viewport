@@ -19,9 +19,27 @@ $ ()->
       r1.bottom > r2.top and
       r2.right > r1.left and
       r2.bottom > r1.top
+  # Returns the intersection of both rectangles.
+  intersection = (r1, r2)->
+    r1 = $.extend {}, r1
+    r2 = $.extend {}, r2
+    if r1.width <= 0 or r1.height <= 0 or r2.width <= 0 or r2.height <= 0
+      return false
+    for rectangle in [r1, r2]
+      rectangle.right = rectangle.left + rectangle.width
+      rectangle.bottom = rectangle.top + rectangle.height
+    result =
+      left: if r1.left < r2.left then r2.left else r1.left
+      top: if r1.top < r2.top then r2.top else r1.top
+      right: if r1.right > r2.right then r2.right else r1.right
+      bottom: if r1.bottom > r2.bottom then r2.bottom else r1.bottom
+    result.width = result.right - result.left
+    result.height = result.bottom - result.top
+    return result
 
-  # returns true if the given element intersects the viewport
-  isInViewport = ($element)->
+  # Returns true if the given element intersects the viewport.
+  # The overlap parameter should be used to delay the intersection.
+  isInViewport = ($element, overlap)->
     windowRectangle =
       left: document.documentElement.clientLeft
       top: document.documentElement.clientTop
@@ -32,15 +50,19 @@ $ ()->
     if $element instanceof jQuery
         element = $element[0]
     elementRectangle = element.getBoundingClientRect()
+    intersectionResult = intersection windowRectangle, elementRectangle
+    hasRequiredOverlap = Math.min(
+      Math.max(0, intersectionResult.width),
+      Math.max(0, intersectionResult.height)) >= overlap
+    return intersects(windowRectangle, elementRectangle) and hasRequiredOverlap
 
-    return intersects windowRectangle, elementRectangle
   hasFocusFlag = ($element)->
     $element.is("[#{focusFlagAttribute}]")
-  getFocussedTargets = ($targets)->
+  getFocussedTargets = ($targets, overlap)->
     result = []
     $targets.each (i, element)->
       $element = $ element
-      if isInViewport($element)
+      if isInViewport($element, overlap)
         result.push $element[0]
     result
 
@@ -53,9 +75,10 @@ $ ()->
       updateDelegate = delegate this, this.update
       $window.resize ()-> updateDelegate.invoke()
       $window.scroll ()-> updateDelegate.invoke()
+    # Updates the state of the targets
     update: ()->
       $targets = $ @config.selector
-      $focussed = getFocussedTargets $targets
+      $focussed = getFocussedTargets $targets, @config.overlap
       newFocussed = (element for element in $focussed when not hasFocusFlag($ element))
       newDefocussed = []
       $targets.each (i, element)->
