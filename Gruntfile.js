@@ -48,7 +48,8 @@ module.exports = function(grunt) {
           cleancss: true
         },
         files: {
-          "dest/style/viewport.css": "style/*.less"
+          "dest/style/viewport.css": "style/*.less",
+          "dest/style/demo.css": "style/demo/demo.less"
         }
       },
       production: {
@@ -58,7 +59,8 @@ module.exports = function(grunt) {
           cleancss: true
         },
         files: {
-          "dest/style/viewport.css": "style/*.less"
+          "dest/style/viewport.css": "style/*.less",
+          "dest/style/demo.css": "style/demo/demo.less"
         }
       }
     },
@@ -92,7 +94,8 @@ module.exports = function(grunt) {
           join: true
         },
         files: {
-          'dest/scripts/viewport.js': ['coffee/**/*.coffee']
+          'dest/scripts/viewport.js': ['coffee/*.coffee'],
+          'dest/scripts/demo.js': ['coffee/demo/*.coffee']
         }
       }
     }
